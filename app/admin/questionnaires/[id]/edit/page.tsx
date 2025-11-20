@@ -7,60 +7,49 @@ interface EditQuestionnairePageProps {
   params: { id: string }
 }
 
+// Force dynamic rendering - never pre-render this page
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 export const revalidate = 0
-export const runtime = 'nodejs'
 
-// Prevent static generation during build - return empty array
+// Prevent static generation during build
 export async function generateStaticParams() {
-  // Return empty array to prevent Next.js from trying to pre-generate pages
-  // All pages will be generated on-demand at request time
+  // Return empty array - no pages will be pre-generated
+  // This prevents Next.js from trying to collect page data during build
   return []
 }
 
 export default async function EditQuestionnairePage({ params }: EditQuestionnairePageProps) {
-  // Handle build-time execution gracefully - during build, params might be undefined
-  if (!params?.id || typeof params.id !== 'string') {
-    // Return a minimal page during build to prevent build errors
+  // Validate params - this will handle build-time execution gracefully
+  if (!params || typeof params.id !== 'string' || !params.id) {
+    // During build or invalid params, return minimal page
+    // This prevents build errors
     return (
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Questionnaire</h1>
           <div className="bg-white rounded-lg shadow-md p-8">
-            <p className="text-gray-600">Please provide a valid questionnaire ID</p>
+            <p className="text-gray-600">Loading...</p>
           </div>
         </div>
       </div>
     )
   }
 
+  // Fetch data - wrapped in try-catch to handle any errors gracefully
   let result
   try {
     result = await getQuestionnaire(params.id)
-  } catch (error: any) {
-    // Handle build-time and runtime errors gracefully
-    // During build, database might not be accessible
-    console.error('Error loading questionnaire:', error?.message || error)
     
-    // During build, return a minimal page instead of throwing
-    if (process.env.NEXT_PHASE === 'phase-production-build') {
-      return (
-        <div className="min-h-screen bg-gray-50 p-8">
-          <div className="max-w-6xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Questionnaire</h1>
-            <div className="bg-white rounded-lg shadow-md p-8">
-              <p className="text-gray-600">Questionnaire will be loaded at runtime</p>
-            </div>
-          </div>
-        </div>
-      )
+    // Check if result is valid
+    if (!result || !result.success || !result.questionnaire) {
+      notFound()
     }
-    
-    notFound()
-  }
-
-  if (!result || !result.success || !result.questionnaire) {
+  } catch (error: any) {
+    // Handle any errors during data fetching
+    // During build, this might happen if database is not accessible
+    // During runtime, we show 404
+    console.error('Error in EditQuestionnairePage:', error?.message || String(error))
     notFound()
   }
 
