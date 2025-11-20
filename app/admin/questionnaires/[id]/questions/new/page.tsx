@@ -6,6 +6,8 @@ interface NewQuestionPageProps {
   params: { id: string }
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function NewQuestionPage({ params }: NewQuestionPageProps) {
   const result = await getQuestionnaire(params.id)
 

@@ -6,6 +6,8 @@ interface EditQuestionPageProps {
   params: { id: string }
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function EditQuestionPage({ params }: EditQuestionPageProps) {
   const question = await prisma.question.findUnique({
     where: { id: params.id },
