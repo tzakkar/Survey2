@@ -39,12 +39,17 @@ SUPABASE_SERVICE_KEY=your_service_key_here
 
 ### Step 2: Vercel Build Settings
 
-Vercel should automatically detect Next.js. Verify these settings:
+**IMPORTANT:** In Vercel Project Settings, verify these settings:
 
-- **Framework Preset:** Next.js
-- **Build Command:** `npm run build` (default)
-- **Output Directory:** `.next` (default)
-- **Install Command:** `npm install` (default)
+1. Go to **Settings** → **General**
+2. Under **Framework Preset**, make sure it's set to **Next.js**
+3. **DO NOT** set an Output Directory - leave it empty (Next.js uses `.next` internally)
+4. Build Command should be: `npm run build` (or leave default)
+5. Install Command should be: `npm install` (or leave default)
+
+**If you see "Output Directory" set to "public" or anything else:**
+- Clear it/leave it empty
+- Vercel will automatically use `.next` for Next.js projects
 
 ### Step 3: Deploy
 
