@@ -78,13 +78,11 @@ export async function deleteQuestionnaire(id: string) {
 }
 
 export async function getAllQuestionnaires() {
-  // Skip database queries during build time
-  // Check multiple ways to detect build time
+  // Skip database queries during build time - always return safely
   const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
-                      process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV ||
-                      typeof process.env.VERCEL === 'undefined'
+                      (process.env.NODE_ENV === 'production' && typeof process.env.VERCEL === 'undefined')
   
-  if (isBuildTime && typeof window === 'undefined' && !process.env.VERCEL) {
+  if (isBuildTime) {
     return { success: false, error: 'Build time - skipping database query', questionnaires: [] }
   }
 
@@ -126,17 +124,16 @@ export async function getAllQuestionnaires() {
 }
 
 export async function getQuestionnaire(id: string) {
-  // Skip database queries during build time
+  // Skip database queries during build time - always return safely
   // Check multiple ways to detect build time
   const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
-                      (process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV) ||
-                      typeof process.env.VERCEL === 'undefined'
+                      (process.env.NODE_ENV === 'production' && typeof process.env.VERCEL === 'undefined')
   
-  if (isBuildTime && typeof window === 'undefined' && !process.env.VERCEL) {
+  if (isBuildTime) {
     return { success: false, error: 'Build time - skipping database query' }
   }
 
-  // Try Prisma first
+  // Try Prisma first - wrap everything to never throw
   try {
     const questionnaire = await prisma.questionnaire.findUnique({
       where: { id },
@@ -384,13 +381,11 @@ export async function deleteOption(id: string) {
 
 // Response actions
 export async function getQuestionnaireResponses(questionnaireId: string) {
-  // Skip database queries during build time
-  // Check multiple ways to detect build time
+  // Skip database queries during build time - always return safely
   const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
-                      (process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV) ||
-                      typeof process.env.VERCEL === 'undefined'
+                      (process.env.NODE_ENV === 'production' && typeof process.env.VERCEL === 'undefined')
   
-  if (isBuildTime && typeof window === 'undefined' && !process.env.VERCEL) {
+  if (isBuildTime) {
     return { success: false, error: 'Build time - skipping database query', responses: [] }
   }
 

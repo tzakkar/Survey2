@@ -145,13 +145,11 @@ export async function submitSurvey(
 }
 
 export async function getQuestionnaireBySlug(slug: string) {
-  // Skip database queries during build time
-  // Check multiple ways to detect build time  
+  // Skip database queries during build time - always return safely
   const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
-                      (process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV) ||
-                      typeof process.env.VERCEL === 'undefined'
+                      (process.env.NODE_ENV === 'production' && typeof process.env.VERCEL === 'undefined')
   
-  if (isBuildTime && typeof window === 'undefined' && !process.env.VERCEL) {
+  if (isBuildTime) {
     return null
   }
 
