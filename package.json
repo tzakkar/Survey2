@@ -13,7 +13,10 @@
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "db:fix-options": "node scripts/update-db-via-api.js",
-    "db:test-connection": "node test-db-connection-fixed.js"
+    "db:test-connection": "node test-db-connection-fixed.js",
+    "db:test-simple": "node test-connection-simple.js",
+    "db:verify-project": "node verify-supabase-project.js",
+    "db:push": "prisma db push"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",

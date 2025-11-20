@@ -1,0 +1,11 @@
+# Copy these lines and replace DATABASE_URL and DIRECT_URL in your .env file
+
+DATABASE_URL="postgresql://postgres:Morhaf%401985%21%21%21%21@db.sjjzoxcmtgzbyunnmopo.supabase.co:5432/postgres?sslmode=require"
+DIRECT_URL="postgresql://postgres:Morhaf%401985%21%21%21%21@db.sjjzoxcmtgzbyunnmopo.supabase.co:5432/postgres?sslmode=require"
+
+# Password encoding:
+# @ → %40
+# ! → %21 (each exclamation mark)
+# Original: Morhaf@1985!!!!
+# Encoded: Morhaf%401985%21%21%21%21
+

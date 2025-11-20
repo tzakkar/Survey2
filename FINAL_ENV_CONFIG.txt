@@ -1,0 +1,11 @@
+# Complete .env file configuration - Copy all these lines
+
+# Database Connection
+DATABASE_URL="postgresql://postgres:Morhaf%401985%21%21%21%21@db.sjjzoxcmtgzbyunnmopo.supabase.co:5432/postgres?sslmode=require"
+DIRECT_URL="postgresql://postgres:Morhaf%401985%21%21%21%21@db.sjjzoxcmtgzbyunnmopo.supabase.co:5432/postgres?sslmode=require"
+
+# Supabase API Configuration (Updated with fresh keys)
+NEXT_PUBLIC_SUPABASE_URL="https://sjjzoxcmtgzbyunnmopo.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqanpveGNtdGd6Ynl1bm5tb3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NTE1NjksImV4cCI6MjA3OTEyNzU2OX0.Oiwg35Csxws26-l4g92QnCCaGeor7M3aihL1zAC4Cvk"
+SUPABASE_SERVICE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqanpveGNtdGd6Ynl1bm5tb3BvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MzU1MTU2OSwiZXhwIjoyMDc5MTI3NTY5fQ.ZNmrMCPnHZAxx_M9Szb4p2voPNTjRF_gE8c00WworLw"
+

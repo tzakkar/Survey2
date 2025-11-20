@@ -1,0 +1,18 @@
+# Complete .env file configuration
+# Copy all these lines to your .env file
+
+# Database Connection
+DATABASE_URL="postgresql://postgres:Morhaf%401985%21%21%21%21@db.sjjzoxcmtgzbyunnmopo.supabase.co:5432/postgres?sslmode=require"
+DIRECT_URL="postgresql://postgres:Morhaf%401985%21%21%21%21@db.sjjzoxcmtgzbyunnmopo.supabase.co:5432/postgres?sslmode=require"
+
+# Supabase API Configuration
+NEXT_PUBLIC_SUPABASE_URL="https://sjjzoxcmtgzbyunnmopo.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_enVwtG3Uu6QE9xj0hPWf4w_ZdAREIqD"
+SUPABASE_SERVICE_KEY="sb_secret_zCT0fuw-S4tDjdoi-aobFw_wDhb1x0K"
+
+# Note: If you need fresh API keys, get them from:
+# Supabase Dashboard → Settings → API
+# - Project URL → NEXT_PUBLIC_SUPABASE_URL
+# - anon/public key → NEXT_PUBLIC_SUPABASE_ANON_KEY
+# - service_role key → SUPABASE_SERVICE_KEY
+
