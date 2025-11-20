@@ -9,6 +9,8 @@ interface SurveyPageProps {
   searchParams: { lang?: string }
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function SurveyPage({ params, searchParams }: SurveyPageProps) {
   const lang = (searchParams.lang || 'en') === 'ar' ? 'ar' : 'en'
   const dir = getDir(lang)

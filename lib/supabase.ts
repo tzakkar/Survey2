@@ -7,7 +7,9 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'sb_secret_zCT0
 
 // Custom fetch with timeout and retry logic for better error handling
 // IMPORTANT: Preserves all headers including Supabase's apikey and Authorization headers
-const customFetch = async (url: string, options: RequestInit = {}, retries = 2): Promise<Response> => {
+const customFetch = async (input: RequestInfo | URL, init?: RequestInit, retries = 2): Promise<Response> => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+  const options = init || {}
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 second timeout
 

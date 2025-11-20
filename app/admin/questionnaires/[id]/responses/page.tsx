@@ -2,8 +2,32 @@ import { notFound } from 'next/navigation'
 import { getQuestionnaireResponses } from '@/app/actions/admin'
 import { Language } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
+
 interface ResponsesPageProps {
   params: { id: string }
+}
+
+interface AnswerWithDetails {
+  id: string
+  questionId: string
+  valueText: string | null
+  valueOptionId: string | null
+  question: {
+    textEn: string
+    textAr: string
+  } | null
+  option: {
+    labelEn: string
+    labelAr: string
+  } | null
+}
+
+interface ResponseWithAnswers {
+  id: string
+  submittedAt: Date | string
+  language: Language
+  answers: AnswerWithDetails[]
 }
 
 export default async function ResponsesPage({ params }: ResponsesPageProps) {
@@ -53,7 +77,7 @@ export default async function ResponsesPage({ params }: ResponsesPageProps) {
     )
   }
 
-  const responses = result.responses
+  const responses = (result.responses || []) as ResponseWithAnswers[]
 
   const getLanguageLabel = (lang: Language) => {
     return lang === 'AR' ? 'Arabic' : 'English'
@@ -117,7 +141,7 @@ export default async function ResponsesPage({ params }: ResponsesPageProps) {
                         </summary>
                         <div className="mt-2 pl-4 space-y-2">
                           {response.answers && response.answers.length > 0 ? (
-                            response.answers.map((answer) => (
+                            response.answers.map((answer: AnswerWithDetails) => (
                               <div key={answer.id} className="border-l-2 border-gray-300 pl-3">
                                 <p className="font-medium text-gray-700">
                                   {answer.question?.textEn || `Question ID: ${answer.questionId}`}
