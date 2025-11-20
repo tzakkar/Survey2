@@ -20,14 +20,15 @@ export async function generateStaticParams() {
 }
 
 export default async function EditQuestionnairePage({ params }: EditQuestionnairePageProps) {
-  // Handle build-time execution gracefully
-  if (!params?.id) {
+  // Handle build-time execution gracefully - during build, params might be undefined
+  if (!params?.id || typeof params.id !== 'string') {
+    // Return a minimal page during build to prevent build errors
     return (
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Questionnaire</h1>
           <div className="bg-white rounded-lg shadow-md p-8">
-            <p className="text-gray-600">Loading...</p>
+            <p className="text-gray-600">Please provide a valid questionnaire ID</p>
           </div>
         </div>
       </div>
@@ -37,9 +38,25 @@ export default async function EditQuestionnairePage({ params }: EditQuestionnair
   let result
   try {
     result = await getQuestionnaire(params.id)
-  } catch (error) {
-    // Handle build-time errors gracefully
-    console.error('Error loading questionnaire:', error)
+  } catch (error: any) {
+    // Handle build-time and runtime errors gracefully
+    // During build, database might not be accessible
+    console.error('Error loading questionnaire:', error?.message || error)
+    
+    // During build, return a minimal page instead of throwing
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+      return (
+        <div className="min-h-screen bg-gray-50 p-8">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Questionnaire</h1>
+            <div className="bg-white rounded-lg shadow-md p-8">
+              <p className="text-gray-600">Questionnaire will be loaded at runtime</p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+    
     notFound()
   }
 
