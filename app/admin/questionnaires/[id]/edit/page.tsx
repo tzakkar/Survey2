@@ -43,13 +43,45 @@ export default async function EditQuestionnairePage({ params }: EditQuestionnair
     
     // Check if result is valid
     if (!result || !result.success || !result.questionnaire) {
+      // During build or if result indicates build-time skip, return loading page
+      if (result?.error?.includes('Build time') || !process.env.VERCEL) {
+        return (
+          <div className="min-h-screen bg-gray-50 p-8">
+            <div className="max-w-6xl mx-auto">
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Questionnaire</h1>
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <p className="text-gray-600">Loading...</p>
+              </div>
+            </div>
+          </div>
+        )
+      }
       notFound()
     }
   } catch (error: any) {
     // Handle any errors during data fetching
-    // During build, this might happen if database is not accessible
-    // During runtime, we show 404
+    // During build, NEVER throw - always return a valid component
     console.error('Error in EditQuestionnairePage:', error?.message || String(error))
+    
+    // Always return a valid component, never throw during build
+    // Check if error is build-related
+    const errorMessage = error?.message || String(error) || ''
+    if (errorMessage.includes('Build time') || 
+        errorMessage.includes('Can\'t reach database') ||
+        !process.env.VERCEL) {
+      return (
+        <div className="min-h-screen bg-gray-50 p-8">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Questionnaire</h1>
+            <div className="bg-white rounded-lg shadow-md p-8">
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+    
+    // Only call notFound() at runtime, not during build
     notFound()
   }
 

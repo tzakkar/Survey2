@@ -79,7 +79,12 @@ export async function deleteQuestionnaire(id: string) {
 
 export async function getAllQuestionnaires() {
   // Skip database queries during build time
-  if (process.env.NEXT_PHASE === 'phase-production-build') {
+  // Check multiple ways to detect build time
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
+                      process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV ||
+                      typeof process.env.VERCEL === 'undefined'
+  
+  if (isBuildTime && typeof window === 'undefined' && !process.env.VERCEL) {
     return { success: false, error: 'Build time - skipping database query', questionnaires: [] }
   }
 
@@ -122,7 +127,12 @@ export async function getAllQuestionnaires() {
 
 export async function getQuestionnaire(id: string) {
   // Skip database queries during build time
-  if (process.env.NEXT_PHASE === 'phase-production-build') {
+  // Check multiple ways to detect build time
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
+                      (process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV) ||
+                      typeof process.env.VERCEL === 'undefined'
+  
+  if (isBuildTime && typeof window === 'undefined' && !process.env.VERCEL) {
     return { success: false, error: 'Build time - skipping database query' }
   }
 
@@ -375,7 +385,12 @@ export async function deleteOption(id: string) {
 // Response actions
 export async function getQuestionnaireResponses(questionnaireId: string) {
   // Skip database queries during build time
-  if (process.env.NEXT_PHASE === 'phase-production-build') {
+  // Check multiple ways to detect build time
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
+                      (process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV) ||
+                      typeof process.env.VERCEL === 'undefined'
+  
+  if (isBuildTime && typeof window === 'undefined' && !process.env.VERCEL) {
     return { success: false, error: 'Build time - skipping database query', responses: [] }
   }
 

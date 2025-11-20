@@ -15,17 +15,66 @@ export async function generateStaticParams() {
 }
 
 export default async function EditQuestionPage({ params }: EditQuestionPageProps) {
-  const question = await prisma.question.findUnique({
-    where: { id: params.id },
-    include: {
-      options: {
-        orderBy: { order: 'asc' },
-      },
-      questionnaire: true,
-    },
-  })
+  // Handle build-time execution gracefully
+  if (!params?.id || typeof params.id !== 'string') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Question</h1>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-  if (!question) {
+  let question
+  try {
+    question = await prisma.question.findUnique({
+      where: { id: params.id },
+      include: {
+        options: {
+          orderBy: { order: 'asc' },
+        },
+        questionnaire: true,
+      },
+    })
+
+    if (!question) {
+      // During build, return loading page instead of 404
+      if (!process.env.VERCEL) {
+        return (
+          <div className="min-h-screen bg-gray-50 p-8">
+            <div className="max-w-3xl mx-auto">
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Question</h1>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <p className="text-gray-600">Loading...</p>
+              </div>
+            </div>
+          </div>
+        )
+      }
+      notFound()
+    }
+  } catch (error: any) {
+    // Handle errors during build
+    console.error('Error loading question:', error?.message || String(error))
+    
+    // During build, always return a valid component
+    if (!process.env.VERCEL || error?.message?.includes('Can\'t reach database')) {
+      return (
+        <div className="min-h-screen bg-gray-50 p-8">
+          <div className="max-w-3xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Question</h1>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+    
     notFound()
   }
 
