@@ -41,7 +41,8 @@
     "readline-sync": "^1.4.10",
     "tailwindcss": "^3.4.7",
     "tsx": "^4.16.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "xlsx": "^0.18.5"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
