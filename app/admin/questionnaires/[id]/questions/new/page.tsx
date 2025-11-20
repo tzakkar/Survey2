@@ -15,9 +15,29 @@ export async function generateStaticParams() {
 }
 
 export default async function NewQuestionPage({ params }: NewQuestionPageProps) {
-  const result = await getQuestionnaire(params.id)
+  // Handle build-time execution gracefully
+  if (!params?.id || typeof params.id !== 'string') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Add New Question</h1>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-  if (!result.success || !result.questionnaire) {
+  let result
+  try {
+    result = await getQuestionnaire(params.id)
+  } catch (error: any) {
+    console.error('Error loading questionnaire:', error?.message || String(error))
+    notFound()
+  }
+
+  if (!result || !result.success || !result.questionnaire) {
     notFound()
   }
 

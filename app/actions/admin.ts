@@ -78,6 +78,11 @@ export async function deleteQuestionnaire(id: string) {
 }
 
 export async function getAllQuestionnaires() {
+  // Skip database queries during build time
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    return { success: false, error: 'Build time - skipping database query', questionnaires: [] }
+  }
+
   // Try Prisma first
   try {
     const questionnaires = await prisma.questionnaire.findMany({
@@ -369,6 +374,11 @@ export async function deleteOption(id: string) {
 
 // Response actions
 export async function getQuestionnaireResponses(questionnaireId: string) {
+  // Skip database queries during build time
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    return { success: false, error: 'Build time - skipping database query', responses: [] }
+  }
+
   // Try Prisma first
   try {
     const responses = await prisma.response.findMany({

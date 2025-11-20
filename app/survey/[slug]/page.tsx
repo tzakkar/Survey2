@@ -21,6 +21,20 @@ export default async function SurveyPage({ params, searchParams }: SurveyPagePro
   const lang = (searchParams.lang || 'en') === 'ar' ? 'ar' : 'en'
   const dir = getDir(lang)
 
+  // Handle build-time execution gracefully
+  if (!params?.slug || typeof params.slug !== 'string') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir={dir}>
+        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            {lang === 'ar' ? 'الاستبيان غير متاح' : 'Questionnaire Not Available'}
+          </h1>
+          <p className="text-gray-600 mb-4">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
   let questionnaire
   try {
     questionnaire = await getQuestionnaireBySlug(params.slug)

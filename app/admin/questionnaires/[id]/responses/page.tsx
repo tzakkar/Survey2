@@ -37,7 +37,39 @@ interface ResponseWithAnswers {
 }
 
 export default async function ResponsesPage({ params }: ResponsesPageProps) {
-  const result = await getQuestionnaireResponses(params.id)
+  // Handle build-time execution gracefully
+  if (!params?.id || typeof params.id !== 'string') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Survey Responses</h1>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  let result
+  try {
+    result = await getQuestionnaireResponses(params.id)
+  } catch (error: any) {
+    console.error('Error loading responses:', error?.message || String(error))
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Survey Responses</h1>
+            <div className="bg-red-50 border border-red-200 rounded-md p-4">
+              <p className="text-red-800 font-medium mb-2">Error loading responses</p>
+              <p className="text-red-600 text-sm">{error?.message || 'Unknown error occurred'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!result.success) {
     return (

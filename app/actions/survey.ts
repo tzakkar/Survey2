@@ -145,6 +145,11 @@ export async function submitSurvey(
 }
 
 export async function getQuestionnaireBySlug(slug: string) {
+  // Skip database queries during build time
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    return null
+  }
+
   // Try Prisma first
   try {
     const questionnaire = await prisma.questionnaire.findUnique({

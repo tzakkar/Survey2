@@ -5,7 +5,27 @@ import { AudienceType } from '@prisma/client'
 export const dynamic = 'force-dynamic'
 
 export default async function QuestionnairesPage() {
-  const result = await getAllQuestionnaires()
+  let result
+  try {
+    result = await getAllQuestionnaires()
+  } catch (error: any) {
+    console.error('Error loading questionnaires:', error?.message || String(error))
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Database Connection Error</h2>
+              <p className="text-gray-600 mb-4">Unable to connect to the database.</p>
+              <p className="text-sm text-red-600 bg-red-50 p-3 rounded mb-4">
+                Error: {error?.message || 'Unknown error'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!result.success || !result.questionnaires) {
     return (
