@@ -116,6 +116,11 @@ export async function getAllQuestionnaires() {
 }
 
 export async function getQuestionnaire(id: string) {
+  // Skip database queries during build time
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    return { success: false, error: 'Build time - skipping database query' }
+  }
+
   // Try Prisma first
   try {
     const questionnaire = await prisma.questionnaire.findUnique({
