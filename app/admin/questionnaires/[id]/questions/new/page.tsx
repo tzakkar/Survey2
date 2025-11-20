@@ -7,6 +7,12 @@ interface NewQuestionPageProps {
 }
 
 export const dynamic = 'force-dynamic'
+export const dynamicParams = true
+
+// Prevent static generation during build
+export async function generateStaticParams() {
+  return []
+}
 
 export default async function NewQuestionPage({ params }: NewQuestionPageProps) {
   const result = await getQuestionnaire(params.id)

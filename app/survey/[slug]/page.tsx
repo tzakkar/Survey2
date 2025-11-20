@@ -10,6 +10,12 @@ interface SurveyPageProps {
 }
 
 export const dynamic = 'force-dynamic'
+export const dynamicParams = true
+
+// Prevent static generation during build
+export async function generateStaticParams() {
+  return []
+}
 
 export default async function SurveyPage({ params, searchParams }: SurveyPageProps) {
   const lang = (searchParams.lang || 'en') === 'ar' ? 'ar' : 'en'

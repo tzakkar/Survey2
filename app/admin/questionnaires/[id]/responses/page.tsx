@@ -3,6 +3,12 @@ import { getQuestionnaireResponses } from '@/app/actions/admin'
 import { Language } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
+export const dynamicParams = true
+
+// Prevent static generation during build
+export async function generateStaticParams() {
+  return []
+}
 
 interface ResponsesPageProps {
   params: { id: string }
