@@ -266,7 +266,7 @@ export async function getQuestionnaireBySlug(slug: string) {
     console.log('📊 Questionnaire data:', {
       sectionsCount: result.sections?.length || 0,
       questionsCount: result.questions?.length || 0,
-      questionsWithSections: result.questions?.filter(q => q.sectionId).length || 0
+      questionsWithSections: result.questions?.filter((q: any) => q.sectionId).length || 0
     })
     
     return result
