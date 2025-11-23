@@ -185,12 +185,26 @@ export default async function ResponsesPage({ params }: ResponsesPageProps) {
                                   {answer.question?.textEn || `Question ID: ${answer.questionId}`}
                                 </p>
                                 <p className="text-gray-600">
-                                  {answer.valueText ||
-                                    (answer.option
+                                  {answer.valueText ? (
+                                    // If valueText exists, it could be a text answer or "Other" specification
+                                    answer.valueOptionId && answer.option ? (
+                                      // "Other" option selected with text
+                                      <span>
+                                        <span className="font-medium">{answer.option.labelEn}: </span>
+                                        <span>{answer.valueText}</span>
+                                      </span>
+                                    ) : (
+                                      // Regular text answer
+                                      answer.valueText
+                                    )
+                                  ) : (
+                                    // Option selected (not "Other")
+                                    answer.option
                                       ? answer.option.labelEn
                                       : answer.valueOptionId
                                       ? `Option ID: ${answer.valueOptionId}`
-                                      : 'No answer')}
+                                      : 'No answer'
+                                  )}
                                 </p>
                               </div>
                             ))
