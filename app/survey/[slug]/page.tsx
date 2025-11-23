@@ -45,7 +45,7 @@ export default async function SurveyPage({ params, searchParams }: SurveyPagePro
         slug: questionnaire.slug,
         sectionsCount: questionnaire.sections?.length || 0,
         questionsCount: questionnaire.questions?.length || 0,
-        sections: questionnaire.sections?.map(s => ({ order: s.order, title: s.titleEn })) || []
+        sections: questionnaire.sections?.map((s: any) => ({ order: s.order, title: s.titleEn })) || []
       })
     }
   } catch (error) {
