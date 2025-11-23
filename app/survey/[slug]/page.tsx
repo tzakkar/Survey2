@@ -103,7 +103,7 @@ export default async function SurveyPage({ params, searchParams }: SurveyPagePro
         </div>
 
         {/* Form Section */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-10 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-10 border border-gray-100 relative">
           <SurveyForm questionnaire={questionnaire} language={lang} />
         </div>
       </div>

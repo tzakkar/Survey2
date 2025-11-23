@@ -42,6 +42,11 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
   const lang = language === 'ar' ? 'ar' : 'en'
   const t = (key: string) => getTranslation(lang, key)
 
+  // Calculate completion percentage
+  const totalQuestions = questionnaire.questions.length
+  const answeredQuestions = Object.keys(answers).filter(key => answers[key] && answers[key].trim() !== '').length
+  const completionPercentage = totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0
+
   const handleChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
     // Clear error for this question
@@ -278,6 +283,31 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-10">
+      {/* Completion Progress Bar */}
+      <div className="sticky top-0 z-50 bg-white border-b-2 border-gray-200 shadow-md -mx-6 sm:-mx-8 lg:-mx-10 px-6 sm:px-8 lg:px-10 py-4 mb-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <div className="flex-1">
+              <div className="flex items-center justify-between text-sm font-medium text-gray-700 mb-1">
+                <span>{lang === 'ar' ? 'إتمام الاستبيان' : 'Survey Completion'}</span>
+                <span className="text-blue-600 font-bold">{completionPercentage}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
+                  style={{ width: `${completionPercentage}%` }}
+                >
+                  <div className="h-full bg-white/20 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 font-medium whitespace-nowrap">
+              {answeredQuestions} / {totalQuestions} {lang === 'ar' ? 'أسئلة' : 'questions'}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Render questions grouped by sections */}
       {sortedSections.map((section) => {
         const sectionQuestions = questionsBySection.get(section.id) || []
