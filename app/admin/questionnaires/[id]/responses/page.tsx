@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
-import { getQuestionnaireResponses } from '@/app/actions/admin'
+import { getQuestionnaireResponses, getQuestionnaire } from '@/app/actions/admin'
 import { Language } from '@prisma/client'
+import SurveyAnalytics from '@/components/SurveyAnalytics'
 
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
@@ -20,12 +21,17 @@ interface AnswerWithDetails {
   valueText: string | null
   valueOptionId: string | null
   question: {
+    id: string
     textEn: string
     textAr: string
+    type: string
+    order: number
   } | null
   option: {
+    id: string
     labelEn: string
     labelAr: string
+    value: string
   } | null
 }
 
@@ -51,9 +57,12 @@ export default async function ResponsesPage({ params }: ResponsesPageProps) {
     )
   }
 
+  // Fetch both responses and questionnaire with questions
   let result
+  let questionnaireResult
   try {
     result = await getQuestionnaireResponses(params.id)
+    questionnaireResult = await getQuestionnaire(params.id)
   } catch (error: any) {
     console.error('Error loading responses:', error?.message || String(error))
     return (
@@ -116,6 +125,9 @@ export default async function ResponsesPage({ params }: ResponsesPageProps) {
   }
 
   const responses = (result.responses || []) as ResponseWithAnswers[]
+  const questions = questionnaireResult?.success && questionnaireResult?.questionnaire
+    ? questionnaireResult.questionnaire.questions || []
+    : []
 
   const getLanguageLabel = (lang: Language) => {
     return lang === 'AR' ? 'Arabic' : 'English'
@@ -123,9 +135,9 @@ export default async function ResponsesPage({ params }: ResponsesPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Survey Responses</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Survey Responses & Analytics</h1>
           <a
             href="/admin/questionnaires"
             className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
@@ -133,6 +145,17 @@ export default async function ResponsesPage({ params }: ResponsesPageProps) {
             ← Back to Questionnaires
           </a>
         </div>
+
+        {/* Analytics Section */}
+        {responses.length > 0 && questions.length > 0 && (
+          <div className="mb-8">
+            <SurveyAnalytics responses={responses} questions={questions} language="en" />
+          </div>
+        )}
+
+        {/* Responses Table Section */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Individual Responses</h2>
 
         {responses.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
@@ -220,6 +243,7 @@ export default async function ResponsesPage({ params }: ResponsesPageProps) {
             </table>
           </div>
         )}
+        </div>
       </div>
     </div>
   )
