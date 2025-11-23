@@ -408,26 +408,28 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
                     </ResponsiveContainer>
                   </div>
                 )}
-                <div className="mt-4">
-                  <h4 className="text-md font-medium text-gray-700 mb-2">
-                    {language === 'ar' ? 'عينة من الإجابات' : 'Sample Answers'} ({stat.textAnswers.length}{' '}
-                    {language === 'ar' ? 'إجابة' : 'answers'})
-                  </h4>
-                  <div className="max-h-60 overflow-y-auto space-y-2">
-                    {stat.textAnswers.slice(0, 5).map((answer, idx) => (
-                      <div key={idx} className="bg-gray-50 p-3 rounded border border-gray-200">
-                        <p className="text-sm text-gray-700">{answer}</p>
-                      </div>
-                    ))}
-                    {stat.textAnswers.length > 5 && (
-                      <p className="text-sm text-gray-500 italic">
-                        {language === 'ar'
-                          ? `و ${stat.textAnswers.length - 5} إجابة أخرى...`
-                          : `and ${stat.textAnswers.length - 5} more answers...`}
-                      </p>
-                    )}
+                {stat.textAnswers && stat.textAnswers.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-md font-medium text-gray-700 mb-2">
+                      {language === 'ar' ? 'عينة من الإجابات' : 'Sample Answers'} ({stat.textAnswers.length}{' '}
+                      {language === 'ar' ? 'إجابة' : 'answers'})
+                    </h4>
+                    <div className="max-h-60 overflow-y-auto space-y-2">
+                      {stat.textAnswers.slice(0, 5).map((answer, idx) => (
+                        <div key={idx} className="bg-gray-50 p-3 rounded border border-gray-200">
+                          <p className="text-sm text-gray-700">{answer}</p>
+                        </div>
+                      ))}
+                      {stat.textAnswers.length > 5 && (
+                        <p className="text-sm text-gray-500 italic">
+                          {language === 'ar'
+                            ? `و ${stat.textAnswers.length - 5} إجابة أخرى...`
+                            : `and ${stat.textAnswers.length - 5} more answers...`}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )
           }
