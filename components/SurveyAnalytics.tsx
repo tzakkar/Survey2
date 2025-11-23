@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { QuestionType } from '@prisma/client'
+// QuestionType enum values
+type QuestionTypeValue = 'TEXT' | 'MULTIPLE_CHOICE' | 'SCALE_1_5'
 import * as XLSX from 'xlsx'
 import {
   BarChart,
@@ -28,7 +29,7 @@ interface AnswerWithDetails {
     id: string
     textEn: string
     textAr: string
-    type: QuestionType | string
+    type: QuestionTypeValue | string
     order: number
   } | null
   option: {
