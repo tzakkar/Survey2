@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { getQuestionnaireBySlug } from '@/app/actions/survey'
 import SurveyForm from '@/components/SurveyForm'
 import LanguageSwitch from '@/components/LanguageSwitch'
+import SurveyFooter from '@/components/SurveyFooter'
 import { getDir } from '@/lib/helpers/i18n'
 
 interface SurveyPageProps {
@@ -105,6 +106,9 @@ export default async function SurveyPage({ params, searchParams }: SurveyPagePro
         {/* Form Section */}
         <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-10 border border-gray-100 relative">
           <SurveyForm questionnaire={questionnaire} language={lang} />
+          
+          {/* Footer */}
+          <SurveyFooter language={lang} />
         </div>
       </div>
     </div>
