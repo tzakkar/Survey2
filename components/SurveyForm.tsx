@@ -36,19 +36,64 @@ interface SurveyFormProps {
 export default function SurveyForm({ questionnaire, language }: SurveyFormProps) {
   const router = useRouter()
   const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [otherTexts, setOtherTexts] = useState<Record<string, string>>({}) // For "Other (please specify)" text inputs
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const lang = language === 'ar' ? 'ar' : 'en'
   const t = (key: string) => getTranslation(lang, key)
 
+  // Check if an option is "Other"
+  const isOtherOption = (option: { value: string; labelEn: string; labelAr: string }) => {
+    return option.value.toLowerCase() === 'other' || 
+           option.value.toLowerCase().includes('other') ||
+           option.labelEn.toLowerCase().includes('other') ||
+           option.labelAr.includes('أخرى')
+  }
+
   // Calculate completion percentage
   const totalQuestions = questionnaire.questions.length
-  const answeredQuestions = Object.keys(answers).filter(key => answers[key] && answers[key].trim() !== '').length
+  const answeredQuestions = Object.keys(answers).filter(key => {
+    const answer = answers[key]
+    if (!answer || answer.trim() === '') return false
+    // Check if "Other" is selected and has text
+    const question = questionnaire.questions.find((q: any) => q.id === key)
+    if (question && question.type === QuestionType.MULTIPLE_CHOICE) {
+      const selectedOption = question.options.find((opt: any) => opt.id === answer)
+      if (selectedOption && isOtherOption(selectedOption)) {
+        return otherTexts[key] && otherTexts[key].trim() !== ''
+      }
+    }
+    return true
+  }).length
   const completionPercentage = totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0
 
   const handleChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
+    // Clear "Other" text if a different option is selected
+    const question = questionnaire.questions.find((q: any) => q.id === questionId)
+    if (question && question.type === QuestionType.MULTIPLE_CHOICE) {
+      const selectedOption = question.options.find((opt: any) => opt.id === value)
+      if (!selectedOption || !isOtherOption(selectedOption)) {
+        setOtherTexts((prev) => {
+          const newTexts = { ...prev }
+          delete newTexts[questionId]
+          return newTexts
+        })
+      }
+    }
+    // Clear error for this question
+    if (errors[questionId]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[questionId]
+        return newErrors
+      })
+    }
+  }
+
+  const handleOtherTextChange = (questionId: string, value: string) => {
+    setOtherTexts((prev) => ({ ...prev, [questionId]: value }))
     // Clear error for this question
     if (errors[questionId]) {
       setErrors((prev) => {
@@ -62,9 +107,20 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
     
-    questionnaire.questions.forEach((question) => {
+    questionnaire.questions.forEach((question: any) => {
       if (question.isRequired && !answers[question.id]) {
         newErrors[question.id] = t('survey.required')
+      }
+      // Validate "Other" text input if "Other" option is selected
+      if (question.type === QuestionType.MULTIPLE_CHOICE && answers[question.id]) {
+        const selectedOption = question.options.find((opt: any) => opt.id === answers[question.id])
+        if (selectedOption && isOtherOption(selectedOption)) {
+          if (!otherTexts[question.id] || otherTexts[question.id].trim() === '') {
+            newErrors[question.id] = lang === 'ar' 
+              ? 'يرجى تحديد الإجابة' 
+              : 'Please specify your answer'
+          }
+        }
       }
     })
 
@@ -82,7 +138,7 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
     setIsSubmitting(true)
 
     try {
-      const answerData = questionnaire.questions.map((question) => {
+      const answerData = questionnaire.questions.map((question: any) => {
         const answerValue = answers[question.id]
         
         if (question.type === QuestionType.TEXT) {
@@ -91,8 +147,27 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
             valueText: answerValue || null,
             valueOptionId: null,
           }
+        } else if (question.type === QuestionType.MULTIPLE_CHOICE) {
+          // Check if "Other" option is selected
+          const selectedOption = question.options.find((opt: any) => opt.id === answerValue)
+          if (selectedOption && isOtherOption(selectedOption) && otherTexts[question.id]) {
+            // Store both the option ID and the "Other" text
+            // We'll store the text in valueText and keep the option ID
+            return {
+              questionId: question.id,
+              valueText: otherTexts[question.id] || null,
+              valueOptionId: answerValue || null,
+            }
+          } else {
+            // Regular option selection
+            return {
+              questionId: question.id,
+              valueText: null,
+              valueOptionId: answerValue || null,
+            }
+          }
         } else {
-          // MULTIPLE_CHOICE or SCALE_1_5
+          // SCALE_1_5
           return {
             questionId: question.id,
             valueText: null,
@@ -196,26 +271,56 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
             {question.type === QuestionType.MULTIPLE_CHOICE && (
               <div className="space-y-2">
                 {question.options && question.options.length > 0 ? (
-                  question.options.map((option) => (
-                    <label
-                      key={option.id}
-                      className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 ${
-                        answers[question.id] === option.id
-                          ? 'bg-blue-50 border-blue-400 shadow-sm'
-                          : 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name={question.id}
-                        value={option.id}
-                        checked={answers[question.id] === option.id}
-                        onChange={(e) => handleChange(question.id, e.target.value)}
-                        className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
-                      />
-                      <span className="text-gray-800 font-medium flex-1">{getOptionLabel(option)}</span>
-                    </label>
-                  ))
+                  <>
+                    {question.options.map((option) => {
+                      const isOther = isOtherOption(option)
+                      const isSelected = answers[question.id] === option.id
+                      const showOtherInput = isOther && isSelected
+                      
+                      return (
+                        <div key={option.id} className="space-y-2">
+                          <label
+                            className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 ${
+                              isSelected
+                                ? 'bg-blue-50 border-blue-400 shadow-sm'
+                                : 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name={question.id}
+                              value={option.id}
+                              checked={isSelected}
+                              onChange={(e) => handleChange(question.id, e.target.value)}
+                              className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
+                            />
+                            <span className="text-gray-800 font-medium flex-1">{getOptionLabel(option)}</span>
+                          </label>
+                          
+                          {/* Show text input when "Other" is selected */}
+                          {showOtherInput && (
+                            <div className="ml-8 mt-2 animate-fadeIn">
+                              <input
+                                type="text"
+                                value={otherTexts[question.id] || ''}
+                                onChange={(e) => handleOtherTextChange(question.id, e.target.value)}
+                                placeholder={lang === 'ar' ? 'يرجى تحديد إجابتك...' : 'Please specify your answer...'}
+                                className={`w-full px-4 py-2.5 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                                  errors[question.id] ? 'border-red-400 bg-red-50' : 'border-blue-300 bg-white'
+                                }`}
+                                dir={lang === 'ar' ? 'rtl' : 'ltr'}
+                              />
+                              {errors[question.id] && (
+                                <p className="text-sm text-red-600 font-medium mt-1 ml-1">
+                                  {errors[question.id]}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </>
                 ) : (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
                     <p className="text-sm text-yellow-800 font-medium">
