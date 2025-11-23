@@ -231,13 +231,25 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
   // Sort sections by order
   const sortedSections = [...sections].sort((a, b) => a.order - b.order)
   
+  // Identify demographics section (typically the first section)
+  const demographicsSection = sortedSections.find(section => 
+    section.titleEn.toLowerCase().includes('demographic') || 
+    section.titleAr.includes('ديموغرافي') ||
+    section.order === 1
+  ) || sortedSections[0] // Fallback to first section if no demographics found
+  
+  // Separate demographics from other sections
+  const demographicsSectionId = demographicsSection?.id
+  const otherSections = sortedSections.filter(section => section.id !== demographicsSectionId)
+  
   // Debug: Log grouped questions
   console.log('📊 Grouped Questions:', {
     sectionsWithQuestions: sortedSections.map(s => ({
       section: s.titleEn,
       questionCount: questionsBySection.get(s.id)?.length || 0
     })),
-    questionsWithoutSection: questionsWithoutSection.length
+    questionsWithoutSection: questionsWithoutSection.length,
+    demographicsSection: demographicsSection?.titleEn
   })
 
   const renderQuestion = (question: typeof questionnaire.questions[0]) => {
@@ -413,8 +425,64 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
         </div>
       </div>
 
-      {/* Render questions grouped by sections */}
-      {sortedSections.map((section) => {
+      {/* Render demographics section first */}
+      {demographicsSection && (() => {
+        const sectionQuestions = questionsBySection.get(demographicsSection.id) || []
+        if (sectionQuestions.length === 0) return null
+
+        const sectionTitle = lang === 'ar' ? demographicsSection.titleAr : demographicsSection.titleEn
+        const sectionInstructions = lang === 'ar' ? demographicsSection.instructionsAr : demographicsSection.instructionsEn
+
+        return (
+          <div key={demographicsSection.id} className="space-y-6">
+            {/* Section Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl p-6 shadow-lg">
+              <h2 className="text-2xl font-bold mb-2">{sectionTitle}</h2>
+              {sectionInstructions && (
+                <p className="text-blue-50 text-sm leading-relaxed mt-3 bg-blue-800/30 rounded-lg p-3 border border-blue-500/30">
+                  {sectionInstructions}
+                </p>
+              )}
+            </div>
+
+            {/* Section Questions */}
+            <div className="space-y-5">
+              {sectionQuestions
+                .sort((a: any, b: any) => a.order - b.order)
+                .map((question: any) => renderQuestion(question))}
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Instructions before remaining sections */}
+      {otherSections.length > 0 && (
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-6 shadow-md">
+          <h3 className="text-lg font-bold text-gray-900 mb-3">
+            {lang === 'ar' ? 'التعليمات' : 'Instructions'}
+          </h3>
+          <p className="text-gray-800 mb-3 leading-relaxed">
+            {lang === 'ar' 
+              ? 'يرجى الإشارة إلى مستوى موافقتك على العبارات التالية المتعلقة بفهمك لإطار الكفاءات.'
+              : 'Please indicate your level of agreement with the following statements about your understanding of the competency framework.'}
+          </p>
+          <div className="bg-white rounded-lg p-4 border border-indigo-300">
+            <p className="text-sm font-semibold text-gray-700 mb-2">
+              {lang === 'ar' ? 'المقياس:' : 'Scale:'}
+            </p>
+            <div className="flex flex-wrap gap-3 text-sm text-gray-800">
+              <span className="bg-gray-100 px-3 py-1 rounded font-medium">1 = {lang === 'ar' ? 'أختلف بشدة' : 'Strongly Disagree'}</span>
+              <span className="bg-gray-100 px-3 py-1 rounded font-medium">2 = {lang === 'ar' ? 'أختلف' : 'Disagree'}</span>
+              <span className="bg-gray-100 px-3 py-1 rounded font-medium">3 = {lang === 'ar' ? 'محايد' : 'Neutral'}</span>
+              <span className="bg-gray-100 px-3 py-1 rounded font-medium">4 = {lang === 'ar' ? 'أتفق' : 'Agree'}</span>
+              <span className="bg-gray-100 px-3 py-1 rounded font-medium">5 = {lang === 'ar' ? 'أتفق بشدة' : 'Strongly Agree'}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Render remaining sections */}
+      {otherSections.map((section) => {
         const sectionQuestions = questionsBySection.get(section.id) || []
         if (sectionQuestions.length === 0) return null
 
@@ -436,8 +504,8 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
             {/* Section Questions */}
             <div className="space-y-5">
               {sectionQuestions
-                .sort((a, b) => a.order - b.order)
-                .map((question) => renderQuestion(question))}
+                .sort((a: any, b: any) => a.order - b.order)
+                .map((question: any) => renderQuestion(question))}
             </div>
           </div>
         )
@@ -447,8 +515,8 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
       {questionsWithoutSection.length > 0 && (
         <div className="space-y-5">
           {questionsWithoutSection
-            .sort((a, b) => a.order - b.order)
-            .map((question) => renderQuestion(question))}
+            .sort((a: any, b: any) => a.order - b.order)
+            .map((question: any) => renderQuestion(question))}
         </div>
       )}
 
