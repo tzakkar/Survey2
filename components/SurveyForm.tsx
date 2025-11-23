@@ -6,8 +6,19 @@ import { submitSurvey } from '@/app/actions/survey'
 import { getTranslation, Language as LangType } from '@/lib/helpers/i18n'
 import { Questionnaire, Question, QuestionType, Language } from '@prisma/client'
 
+type Section = {
+  id: string
+  order: number
+  titleEn: string
+  titleAr: string
+  instructionsEn?: string | null
+  instructionsAr?: string | null
+}
+
 type QuestionnaireWithQuestions = Questionnaire & {
+  sections?: Section[]
   questions: (Question & {
+    sectionId?: string | null
     options: Array<{
       id: string
       value: string
@@ -113,22 +124,56 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
     return lang === 'ar' ? option.labelAr : option.labelEn
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {questionnaire.questions.map((question) => {
-        // Debug: Log questions with missing options
-        if ((question.type === QuestionType.SCALE_1_5 || question.type === QuestionType.MULTIPLE_CHOICE) && (!question.options || question.options.length === 0)) {
-          console.warn(`⚠️ Question "${question.textEn}" (Order: ${question.order}, Type: ${question.type}) has no options in component`)
-        }
-        
-        return (
-          <div key={question.id} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {getQuestionText(question)}
-              {question.isRequired && (
-                <span className="text-red-500 ml-1">*</span>
-              )}
-            </label>
+  // Group questions by sections
+  const sections = questionnaire.sections || []
+  const questionsBySection = new Map<string, typeof questionnaire.questions>()
+  const questionsWithoutSection: typeof questionnaire.questions = []
+
+  // Debug: Log sections and questions
+  console.log('📊 SurveyForm Debug:', {
+    sectionsCount: sections.length,
+    sections: sections.map(s => ({ id: s.id, order: s.order, title: s.titleEn })),
+    questionsCount: questionnaire.questions.length,
+    questionsWithSectionId: questionnaire.questions.filter(q => q.sectionId).length
+  })
+
+  questionnaire.questions.forEach((question) => {
+    if (question.sectionId) {
+      if (!questionsBySection.has(question.sectionId)) {
+        questionsBySection.set(question.sectionId, [])
+      }
+      questionsBySection.get(question.sectionId)!.push(question)
+    } else {
+      questionsWithoutSection.push(question)
+    }
+  })
+
+  // Sort sections by order
+  const sortedSections = [...sections].sort((a, b) => a.order - b.order)
+  
+  // Debug: Log grouped questions
+  console.log('📊 Grouped Questions:', {
+    sectionsWithQuestions: sortedSections.map(s => ({
+      section: s.titleEn,
+      questionCount: questionsBySection.get(s.id)?.length || 0
+    })),
+    questionsWithoutSection: questionsWithoutSection.length
+  })
+
+  const renderQuestion = (question: typeof questionnaire.questions[0]) => {
+    // Debug: Log questions with missing options
+    if ((question.type === QuestionType.SCALE_1_5 || question.type === QuestionType.MULTIPLE_CHOICE) && (!question.options || question.options.length === 0)) {
+      console.warn(`⚠️ Question "${question.textEn}" (Order: ${question.order}, Type: ${question.type}) has no options in component`)
+    }
+    
+    return (
+      <div key={question.id} className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          {getQuestionText(question)}
+          {question.isRequired && (
+            <span className="text-red-500 ml-1">*</span>
+          )}
+        </label>
 
             {question.type === QuestionType.TEXT && (
               <textarea
@@ -216,12 +261,51 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
               </div>
             )}
 
-            {errors[question.id] && (
-              <p className="text-sm text-red-500">{errors[question.id]}</p>
-            )}
+        {errors[question.id] && (
+          <p className="text-sm text-red-500">{errors[question.id]}</p>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Render questions grouped by sections */}
+      {sortedSections.map((section) => {
+        const sectionQuestions = questionsBySection.get(section.id) || []
+        if (sectionQuestions.length === 0) return null
+
+        const sectionTitle = lang === 'ar' ? section.titleAr : section.titleEn
+        const sectionInstructions = lang === 'ar' ? section.instructionsAr : section.instructionsEn
+
+        return (
+          <div key={section.id} className="space-y-4">
+            {/* Section Header */}
+            <div className="border-b-2 border-blue-600 pb-2">
+              <h2 className="text-xl font-bold text-gray-900">{sectionTitle}</h2>
+              {sectionInstructions && (
+                <p className="text-sm text-gray-600 mt-2">{sectionInstructions}</p>
+              )}
+            </div>
+
+            {/* Section Questions */}
+            <div className="space-y-6 pl-4">
+              {sectionQuestions
+                .sort((a, b) => a.order - b.order)
+                .map((question) => renderQuestion(question))}
+            </div>
           </div>
         )
       })}
+
+      {/* Render questions without sections (for backward compatibility) */}
+      {questionsWithoutSection.length > 0 && (
+        <div className="space-y-6">
+          {questionsWithoutSection
+            .sort((a, b) => a.order - b.order)
+            .map((question) => renderQuestion(question))}
+        </div>
+      )}
 
       <div className="flex justify-end pt-4">
         <button

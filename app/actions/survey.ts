@@ -158,6 +158,9 @@ export async function getQuestionnaireBySlug(slug: string) {
     const questionnaire = await prisma.questionnaire.findUnique({
       where: { slug },
       include: {
+        sections: {
+          orderBy: { order: 'asc' },
+        },
         questions: {
           orderBy: { order: 'asc' },
           include: {
@@ -197,6 +200,25 @@ export async function getQuestionnaireBySlug(slug: string) {
       return null
     }
 
+    // Get sections
+    const { data: sections, error: sectionsError } = await supabase
+      .from('Section')
+      .select('*')
+      .eq('questionnaireId', questionnaire.id)
+      .order('order', { ascending: true })
+
+    if (sectionsError) {
+      console.error('Error fetching sections:', sectionsError.message)
+      console.error('Sections error details:', {
+        message: sectionsError.message,
+        details: sectionsError.details,
+        hint: sectionsError.hint,
+        code: sectionsError.code
+      })
+    } else {
+      console.log(`✅ Fetched ${sections?.length || 0} sections for questionnaire`)
+    }
+
     // Get questions
     const { data: questions, error: questionsError } = await supabase
       .from('Question')
@@ -234,10 +256,20 @@ export async function getQuestionnaireBySlug(slug: string) {
     )
 
     // Transform to match Prisma format
-    return {
+    const result = {
       ...questionnaire,
+      sections: sections || [],
       questions: questionsWithOptions
     }
+    
+    // Debug: Log section and question counts
+    console.log('📊 Questionnaire data:', {
+      sectionsCount: result.sections?.length || 0,
+      questionsCount: result.questions?.length || 0,
+      questionsWithSections: result.questions?.filter(q => q.sectionId).length || 0
+    })
+    
+    return result
   } catch (error: any) {
     console.error('Error fetching questionnaire via API:', error)
     console.error('Error details:', {

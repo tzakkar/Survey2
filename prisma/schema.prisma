@@ -40,6 +40,7 @@ model Questionnaire {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
+  sections     Section[]
   questions    Question[]
   responses    Response[]
 
@@ -47,9 +48,25 @@ model Questionnaire {
   @@index([audienceType])
 }
 
+model Section {
+  id             String        @id @default(cuid())
+  questionnaireId String
+  order          Int
+  titleEn        String
+  titleAr        String
+  instructionsEn String?
+  instructionsAr String?
+
+  questionnaire  Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  questions      Question[]
+
+  @@index([questionnaireId, order])
+}
+
 model Question {
   id             String        @id @default(cuid())
   questionnaireId String
+  sectionId      String?
   order          Int
   type           QuestionType
   textEn         String
@@ -57,10 +74,12 @@ model Question {
   isRequired     Boolean       @default(false)
 
   questionnaire  Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  section        Section?      @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   options        Option[]
   answers        Answer[]
 
   @@index([questionnaireId, order])
+  @@index([sectionId])
 }
 
 model Option {

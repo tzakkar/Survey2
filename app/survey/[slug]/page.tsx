@@ -38,6 +38,16 @@ export default async function SurveyPage({ params, searchParams }: SurveyPagePro
   let questionnaire
   try {
     questionnaire = await getQuestionnaireBySlug(params.slug)
+    // Debug: Log sections on server side
+    if (questionnaire) {
+      console.log('📊 Server: Questionnaire loaded:', {
+        id: questionnaire.id,
+        slug: questionnaire.slug,
+        sectionsCount: questionnaire.sections?.length || 0,
+        questionsCount: questionnaire.questions?.length || 0,
+        sections: questionnaire.sections?.map(s => ({ order: s.order, title: s.titleEn })) || []
+      })
+    }
   } catch (error) {
     console.error('Error loading questionnaire:', error)
     questionnaire = null
