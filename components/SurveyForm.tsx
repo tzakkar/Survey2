@@ -167,11 +167,11 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
     }
     
     return (
-      <div key={question.id} className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
+      <div key={question.id} className="bg-gray-50 rounded-lg p-5 border border-gray-200 hover:border-blue-300 transition-all duration-200">
+        <label className="block text-base font-semibold text-gray-800 mb-3 leading-relaxed">
           {getQuestionText(question)}
           {question.isRequired && (
-            <span className="text-red-500 ml-1">*</span>
+            <span className="text-red-500 mr-1" aria-label="required">*</span>
           )}
         </label>
 
@@ -179,11 +179,12 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
               <textarea
                 value={answers[question.id] || ''}
                 onChange={(e) => handleChange(question.id, e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors[question.id] ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                  errors[question.id] ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'
                 }`}
-                rows={4}
+                rows={5}
                 placeholder={lang === 'ar' ? 'اكتب إجابتك هنا...' : 'Type your answer here...'}
+                dir={lang === 'ar' ? 'rtl' : 'ltr'}
               />
             )}
 
@@ -193,7 +194,11 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
                   question.options.map((option) => (
                     <label
                       key={option.id}
-                      className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                      className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 ${
+                        answers[question.id] === option.id
+                          ? 'bg-blue-50 border-blue-400 shadow-sm'
+                          : 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                      }`}
                     >
                       <input
                         type="radio"
@@ -201,9 +206,9 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
                         value={option.id}
                         checked={answers[question.id] === option.id}
                         onChange={(e) => handleChange(question.id, e.target.value)}
-                        className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                        className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
                       />
-                      <span className="text-gray-700">{getOptionLabel(option)}</span>
+                      <span className="text-gray-800 font-medium flex-1">{getOptionLabel(option)}</span>
                     </label>
                   ))
                 ) : (
@@ -222,16 +227,16 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
             )}
 
             {question.type === QuestionType.SCALE_1_5 && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {question.options && question.options.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     {question.options.map((option) => (
                       <label
                         key={option.id}
-                        className={`px-4 py-2 border rounded-md cursor-pointer transition-colors min-w-[120px] text-center ${
+                        className={`px-4 py-3 border-2 rounded-lg cursor-pointer transition-all duration-200 text-center ${
                           answers[question.id] === option.id
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                            : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                            ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-600 shadow-lg transform scale-105'
+                            : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md'
                         }`}
                       >
                         <input
@@ -242,7 +247,7 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
                           onChange={(e) => handleChange(question.id, e.target.value)}
                           className="sr-only"
                         />
-                        <span className="font-medium">{getOptionLabel(option)}</span>
+                        <span className="font-semibold text-sm block">{getOptionLabel(option)}</span>
                       </label>
                     ))}
                   </div>
@@ -262,14 +267,17 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
             )}
 
         {errors[question.id] && (
-          <p className="text-sm text-red-500">{errors[question.id]}</p>
+          <p className="text-sm text-red-600 font-medium mt-2 flex items-center gap-1">
+            <span>⚠️</span>
+            <span>{errors[question.id]}</span>
+          </p>
         )}
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-10">
       {/* Render questions grouped by sections */}
       {sortedSections.map((section) => {
         const sectionQuestions = questionsBySection.get(section.id) || []
@@ -279,17 +287,19 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
         const sectionInstructions = lang === 'ar' ? section.instructionsAr : section.instructionsEn
 
         return (
-          <div key={section.id} className="space-y-4">
+          <div key={section.id} className="space-y-6">
             {/* Section Header */}
-            <div className="border-b-2 border-blue-600 pb-2">
-              <h2 className="text-xl font-bold text-gray-900">{sectionTitle}</h2>
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl p-6 shadow-lg">
+              <h2 className="text-2xl font-bold mb-2">{sectionTitle}</h2>
               {sectionInstructions && (
-                <p className="text-sm text-gray-600 mt-2">{sectionInstructions}</p>
+                <p className="text-blue-50 text-sm leading-relaxed mt-3 bg-blue-800/30 rounded-lg p-3 border border-blue-500/30">
+                  {sectionInstructions}
+                </p>
               )}
             </div>
 
             {/* Section Questions */}
-            <div className="space-y-6 pl-4">
+            <div className="space-y-5">
               {sectionQuestions
                 .sort((a, b) => a.order - b.order)
                 .map((question) => renderQuestion(question))}
@@ -300,20 +310,30 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
 
       {/* Render questions without sections (for backward compatibility) */}
       {questionsWithoutSection.length > 0 && (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {questionsWithoutSection
             .sort((a, b) => a.order - b.order)
             .map((question) => renderQuestion(question))}
         </div>
       )}
 
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-end pt-6 border-t-2 border-gray-200">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none min-w-[150px]"
         >
-          {isSubmitting ? 'Submitting...' : t('survey.submit')}
+          {isSubmitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {lang === 'ar' ? 'جاري الإرسال...' : 'Submitting...'}
+            </span>
+          ) : (
+            t('survey.submit')
+          )}
         </button>
       </div>
     </form>

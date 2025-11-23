@@ -21,10 +21,11 @@ export default function LanguageSwitch({ currentLang }: LanguageSwitchProps) {
   return (
     <button
       onClick={toggleLanguage}
-      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+      className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center gap-2"
       aria-label="Switch language"
     >
-      {currentLang === 'en' ? 'العربية' : 'English'}
+      <span className="text-lg">{currentLang === 'en' ? '🇸🇦' : '🇬🇧'}</span>
+      <span>{currentLang === 'en' ? 'العربية' : 'English'}</span>
     </button>
   )
 }

@@ -81,19 +81,29 @@ export default async function SurveyPage({ params, searchParams }: SurveyPagePro
   const description = lang === 'ar' ? questionnaire.descriptionAr : questionnaire.descriptionEn
 
   return (
-    <div className="min-h-screen bg-gray-50" dir={dir}>
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="mb-6 flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
-            {description && (
-              <p className="text-gray-600">{description}</p>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50" dir={dir}>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Header Section */}
+        <div className="mb-8 bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+            <div className="flex-1">
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 leading-tight">
+                {title}
+              </h1>
+              {description && (
+                <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
+                  {description}
+                </p>
+              )}
+            </div>
+            <div className="flex-shrink-0">
+              <LanguageSwitch currentLang={lang} />
+            </div>
           </div>
-          <LanguageSwitch currentLang={lang} />
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        {/* Form Section */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-10 border border-gray-100">
           <SurveyForm questionnaire={questionnaire} language={lang} />
         </div>
       </div>
