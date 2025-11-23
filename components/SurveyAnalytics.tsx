@@ -44,7 +44,7 @@ interface QuestionWithOptions {
   id: string
   textEn: string
   textAr: string
-  type: QuestionType | string
+  type: QuestionTypeValue | string
   order: number
   options?: Array<{
     id: string
