@@ -108,7 +108,7 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
     const totalAnswers = questionAnswers.length
     const responseRate = totalResponses > 0 ? ((totalAnswers / totalResponses) * 100).toFixed(1) : '0'
 
-    if (question.type === QuestionType.MULTIPLE_CHOICE || question.type === 'MULTIPLE_CHOICE') {
+    if (question.type === 'MULTIPLE_CHOICE') {
       // Count option selections
       const optionCounts: Record<string, number> = {}
       let otherCount = 0
@@ -148,7 +148,7 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
         responseRate,
         optionData,
       }
-    } else if (question.type === QuestionType.SCALE_1_5 || question.type === 'SCALE_1_5') {
+    } else if (question.type === 'SCALE_1_5') {
       // Calculate scale statistics
       const scaleValues: number[] = []
       const scaleCounts: Record<string, number> = {}
