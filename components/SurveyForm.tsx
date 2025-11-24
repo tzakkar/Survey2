@@ -242,6 +242,14 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
   const demographicsSectionId = demographicsSection?.id
   const otherSections = sortedSections.filter(section => section.id !== demographicsSectionId)
   
+  // Find the first scale 1-5 question (with 5 options) across all questions
+  const allQuestionsSorted = [...questionnaire.questions].sort((a, b) => a.order - b.order)
+  const firstScaleQuestion = allQuestionsSorted.find((question: any) => {
+    return question.type === QuestionType.SCALE_1_5 && 
+           question.options && 
+           question.options.length === 5
+  })
+  
   // Debug: Log grouped questions
   console.log('📊 Grouped Questions:', {
     sectionsWithQuestions: sortedSections.map(s => ({
@@ -455,32 +463,6 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
         )
       })()}
 
-      {/* Instructions before remaining sections */}
-      {otherSections.length > 0 && (
-        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-6 shadow-md">
-          <h3 className="text-lg font-bold text-gray-900 mb-3">
-            {lang === 'ar' ? 'التعليمات' : 'Instructions'}
-          </h3>
-          <p className="text-gray-800 mb-3 leading-relaxed">
-            {lang === 'ar' 
-              ? 'يرجى الإشارة إلى مستوى موافقتك على العبارات التالية المتعلقة بفهمك لإطار الكفاءات.'
-              : 'Please indicate your level of agreement with the following statements about your understanding of the competency framework.'}
-          </p>
-          <div className="bg-white rounded-lg p-4 border border-indigo-300">
-            <p className="text-sm font-semibold text-gray-700 mb-2">
-              {lang === 'ar' ? 'المقياس:' : 'Scale:'}
-            </p>
-            <div className="flex flex-wrap gap-3 text-sm text-gray-800">
-              <span className="bg-gray-100 px-3 py-1 rounded font-medium">1 = {lang === 'ar' ? 'أختلف بشدة' : 'Strongly Disagree'}</span>
-              <span className="bg-gray-100 px-3 py-1 rounded font-medium">2 = {lang === 'ar' ? 'أختلف' : 'Disagree'}</span>
-              <span className="bg-gray-100 px-3 py-1 rounded font-medium">3 = {lang === 'ar' ? 'محايد' : 'Neutral'}</span>
-              <span className="bg-gray-100 px-3 py-1 rounded font-medium">4 = {lang === 'ar' ? 'أتفق' : 'Agree'}</span>
-              <span className="bg-gray-100 px-3 py-1 rounded font-medium">5 = {lang === 'ar' ? 'أتفق بشدة' : 'Strongly Agree'}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Render remaining sections */}
       {otherSections.map((section) => {
         const sectionQuestions = questionsBySection.get(section.id) || []
@@ -488,6 +470,7 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
 
         const sectionTitle = lang === 'ar' ? section.titleAr : section.titleEn
         const sectionInstructions = lang === 'ar' ? section.instructionsAr : section.instructionsEn
+        const sortedSectionQuestions = sectionQuestions.sort((a: any, b: any) => a.order - b.order)
 
         return (
           <div key={section.id} className="space-y-6">
@@ -503,9 +486,53 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
 
             {/* Section Questions */}
             <div className="space-y-5">
-              {sectionQuestions
-                .sort((a: any, b: any) => a.order - b.order)
-                .map((question: any) => renderQuestion(question))}
+              {sortedSectionQuestions.map((question: any, index: number) => {
+                // Show scale instructions before the first scale 1-5 question
+                const isFirstScaleQuestion = firstScaleQuestion && 
+                                            question.id === firstScaleQuestion.id &&
+                                            index === sortedSectionQuestions.findIndex((q: any) => q.id === firstScaleQuestion.id)
+                
+                return (
+                  <div key={question.id}>
+                    {/* Scale Instructions before first scale question */}
+                    {isFirstScaleQuestion && (
+                      <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl p-6 shadow-md mb-5">
+                        <h3 className="text-lg font-bold text-gray-900 mb-3">
+                          {lang === 'ar' ? 'التعليمات' : 'Instructions'}
+                        </h3>
+                        <p className="text-gray-800 mb-3 leading-relaxed">
+                          {lang === 'ar' 
+                            ? 'يرجى الإشارة إلى مستوى موافقتك على العبارات التالية المتعلقة بفهمك لإطار الكفاءات.'
+                            : 'Please indicate your level of agreement with the following statements about your understanding of the competency framework.'}
+                        </p>
+                        <div className="bg-white rounded-lg p-4 border border-indigo-300">
+                          <p className="text-sm font-semibold text-gray-700 mb-2">
+                            {lang === 'ar' ? 'المقياس:' : 'Scale:'}
+                          </p>
+                          <div className="space-y-2 text-sm text-gray-800">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-gray-100 px-3 py-1 rounded font-medium min-w-[120px]">1 = {lang === 'ar' ? 'أختلف بشدة' : 'Strongly Disagree'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="bg-gray-100 px-3 py-1 rounded font-medium min-w-[120px]">2 = {lang === 'ar' ? 'أختلف' : 'Disagree'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="bg-gray-100 px-3 py-1 rounded font-medium min-w-[120px]">3 = {lang === 'ar' ? 'محايد' : 'Neutral'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="bg-gray-100 px-3 py-1 rounded font-medium min-w-[120px]">4 = {lang === 'ar' ? 'أتفق' : 'Agree'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="bg-gray-100 px-3 py-1 rounded font-medium min-w-[120px]">5 = {lang === 'ar' ? 'أتفق بشدة' : 'Strongly Agree'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {renderQuestion(question)}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )
