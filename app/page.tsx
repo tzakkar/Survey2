@@ -26,12 +26,6 @@ export default function HomePage() {
           >
             HR Questionnaire
           </Link>
-          <Link
-            href="/admin/questionnaires"
-            className="block w-full text-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors mt-8"
-          >
-            Admin Panel
-          </Link>
         </div>
       </div>
     </div>
