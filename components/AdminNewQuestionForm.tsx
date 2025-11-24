@@ -29,7 +29,7 @@ export default function AdminNewQuestionForm({ questionnaireId, nextOrder, secti
     textEn: '',
     textAr: '',
     isRequired: false,
-    sectionId: '',
+    sectionId: '' as string | null,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,7 +128,7 @@ export default function AdminNewQuestionForm({ questionnaireId, nextOrder, secti
         </label>
         <select
           value={formData.sectionId || ''}
-          onChange={(e) => setFormData({ ...formData, sectionId: e.target.value || null })}
+          onChange={(e) => setFormData({ ...formData, sectionId: e.target.value || null as string | null })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">No Section (Unassigned)</option>

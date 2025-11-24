@@ -42,7 +42,7 @@ export default function AdminQuestionForm({ question, sections = [] }: AdminQues
     textEn: question.textEn,
     textAr: question.textAr,
     isRequired: question.isRequired,
-    sectionId: question.sectionId || '',
+    sectionId: (question.sectionId || '') as string | null,
   })
 
   const [newOption, setNewOption] = useState({
@@ -184,7 +184,7 @@ export default function AdminQuestionForm({ question, sections = [] }: AdminQues
           </label>
           <select
             value={formData.sectionId || ''}
-            onChange={(e) => setFormData({ ...formData, sectionId: e.target.value || null })}
+            onChange={(e) => setFormData({ ...formData, sectionId: (e.target.value || null) as string | null })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">No Section (Unassigned)</option>
