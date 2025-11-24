@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation'
 import { getQuestionnaire } from '@/app/actions/admin'
 import QuestionnaireForm from '@/components/AdminQuestionnaireForm'
 import QuestionList from '@/components/AdminQuestionList'
+import AdminSectionManager from '@/components/AdminSectionManager'
+import AdminQuestionReorder from '@/components/AdminQuestionReorder'
+import AdminQRCodeGenerator from '@/components/AdminQRCodeGenerator'
 
 interface EditQuestionnairePageProps {
   params: { id: string }
@@ -85,17 +88,47 @@ export default async function EditQuestionnairePage({ params }: EditQuestionnair
     notFound()
   }
 
+  const questionnaire = result.questionnaire
+  const sections = (questionnaire as any).sections || []
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Questionnaire</h1>
         
+        {/* QR Code Generator */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <QuestionnaireForm questionnaire={result.questionnaire} />
+          <AdminQRCodeGenerator 
+            questionnaireSlug={questionnaire.slug} 
+            questionnaireTitle={questionnaire.titleEn}
+          />
         </div>
 
+        {/* Questionnaire Form */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <QuestionnaireForm questionnaire={questionnaire} />
+        </div>
+
+        {/* Section Manager */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <AdminSectionManager 
+            sections={sections}
+            questions={questionnaire.questions}
+            questionnaireId={params.id}
+          />
+        </div>
+
+        {/* Question Reorder */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <AdminQuestionReorder 
+            questions={questionnaire.questions}
+            questionnaireId={params.id}
+          />
+        </div>
+
+        {/* Question List */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <QuestionList questionnaireId={params.id} questions={result.questionnaire.questions} />
+          <QuestionList questionnaireId={params.id} questions={questionnaire.questions} />
         </div>
       </div>
     </div>

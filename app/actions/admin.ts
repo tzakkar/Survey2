@@ -138,6 +138,9 @@ export async function getQuestionnaire(id: string) {
     const questionnaire = await prisma.questionnaire.findUnique({
       where: { id },
       include: {
+        sections: {
+          orderBy: { order: 'asc' },
+        },
         questions: {
           orderBy: { order: 'asc' },
           include: {
@@ -163,6 +166,13 @@ export async function getQuestionnaire(id: string) {
       if (qError || !questionnaire) {
         return { error: qError?.message || 'Questionnaire not found' }
       }
+
+      // Get sections
+      const { data: sections } = await supabase
+        .from('Section')
+        .select('*')
+        .eq('questionnaireId', id)
+        .order('order', { ascending: true })
 
       // Get questions
       const { data: questions } = await supabase
@@ -191,6 +201,7 @@ export async function getQuestionnaire(id: string) {
         success: true,
         questionnaire: {
           ...questionnaire,
+          sections: sections || [],
           questions: questionsWithOptions
         }
       }
@@ -565,6 +576,72 @@ export async function fixMissingOptionsForQuestion(questionId: string) {
   } catch (error: any) {
     console.error('Error fixing options:', error)
     return { error: error.message || 'Failed to fix options' }
+  }
+}
+
+// Section actions
+export async function updateSection(
+  id: string,
+  data: {
+    titleEn?: string
+    titleAr?: string
+    instructionsEn?: string
+    instructionsAr?: string
+    order?: number
+  }
+) {
+  // Try Prisma first
+  try {
+    const section = await prisma.section.findUnique({
+      where: { id },
+      select: { questionnaireId: true },
+    })
+
+    if (!section) {
+      return { error: 'Section not found' }
+    }
+
+    const updatedSection = await prisma.section.update({
+      where: { id },
+      data,
+    })
+
+    revalidatePath(`/admin/questionnaires/${section.questionnaireId}`)
+    return { success: true, section: updatedSection }
+  } catch (error: any) {
+    console.log('Prisma connection failed, trying Supabase API...', error.message)
+    
+    // Fallback to Supabase API
+    try {
+      // Get section to find questionnaireId
+      const { data: section, error: sError } = await supabase
+        .from('Section')
+        .select('questionnaireId')
+        .eq('id', id)
+        .single()
+
+      if (sError || !section) {
+        return { error: 'Section not found' }
+      }
+
+      // Update section
+      const { data: updatedSection, error: uError } = await supabase
+        .from('Section')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (uError) {
+        return { error: uError.message || 'Failed to update section' }
+      }
+
+      revalidatePath(`/admin/questionnaires/${section.questionnaireId}`)
+      return { success: true, section: updatedSection }
+    } catch (apiError: any) {
+      console.error('Error updating section via API:', apiError)
+      return { error: apiError.message || 'Failed to update section' }
+    }
   }
 }
 
