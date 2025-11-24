@@ -134,7 +134,7 @@ export default function AdminQuestionReorder({ questions, questionnaireId }: Adm
       </div>
 
       <p className="text-sm text-gray-600 mb-4">
-        Drag and drop questions to reorder them. Click "Save Order" when done.
+        Drag and drop questions to reorder them. Click &quot;Save Order&quot; when done.
       </p>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
