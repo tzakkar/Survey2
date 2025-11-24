@@ -18,11 +18,19 @@ type QuestionWithOptions = Question & {
   }
 }
 
-interface AdminQuestionFormProps {
-  question: QuestionWithOptions
+interface Section {
+  id: string
+  order: number
+  titleEn: string
+  titleAr: string
 }
 
-export default function AdminQuestionForm({ question }: AdminQuestionFormProps) {
+interface AdminQuestionFormProps {
+  question: QuestionWithOptions
+  sections?: Section[]
+}
+
+export default function AdminQuestionForm({ question, sections = [] }: AdminQuestionFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -34,6 +42,7 @@ export default function AdminQuestionForm({ question }: AdminQuestionFormProps) 
     textEn: question.textEn,
     textAr: question.textAr,
     isRequired: question.isRequired,
+    sectionId: question.sectionId || '',
   })
 
   const [newOption, setNewOption] = useState({
@@ -48,7 +57,10 @@ export default function AdminQuestionForm({ question }: AdminQuestionFormProps) 
     setIsSubmitting(true)
 
     try {
-      const result = await updateQuestion(question.id, formData)
+      const result = await updateQuestion(question.id, {
+        ...formData,
+        sectionId: formData.sectionId || null,
+      })
       if (result.error) {
         setError(result.error)
         setIsSubmitting(false)
@@ -164,6 +176,27 @@ export default function AdminQuestionForm({ question }: AdminQuestionFormProps) 
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Section
+          </label>
+          <select
+            value={formData.sectionId || ''}
+            onChange={(e) => setFormData({ ...formData, sectionId: e.target.value || null })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">No Section (Unassigned)</option>
+            {sections.map((section) => (
+              <option key={section.id} value={section.id}>
+                Section {section.order}: {section.titleEn}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Select a section to group this question with others, or leave unassigned.
+          </p>
         </div>
 
         <div>

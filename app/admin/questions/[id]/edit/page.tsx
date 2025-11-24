@@ -30,6 +30,7 @@ export default async function EditQuestionPage({ params }: EditQuestionPageProps
   }
 
   let question
+  let sections
   try {
     question = await prisma.question.findUnique({
       where: { id: params.id },
@@ -37,9 +38,19 @@ export default async function EditQuestionPage({ params }: EditQuestionPageProps
         options: {
           orderBy: { order: 'asc' },
         },
-        questionnaire: true,
+        questionnaire: {
+          include: {
+            sections: {
+              orderBy: { order: 'asc' },
+            },
+          },
+        },
       },
     })
+
+    if (question) {
+      sections = question.questionnaire.sections || []
+    }
 
     if (!question) {
       // During build, return loading page instead of 404
@@ -91,7 +102,7 @@ export default async function EditQuestionPage({ params }: EditQuestionPageProps
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Question</h1>
         <div className="bg-white rounded-lg shadow-md p-6">
-          <QuestionForm question={question} />
+          <QuestionForm question={question} sections={sections || []} />
         </div>
       </div>
     </div>

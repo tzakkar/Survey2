@@ -5,12 +5,20 @@ import { useRouter } from 'next/navigation'
 import { createQuestion } from '@/app/actions/admin'
 import { QuestionType } from '@prisma/client'
 
+interface Section {
+  id: string
+  order: number
+  titleEn: string
+  titleAr: string
+}
+
 interface AdminNewQuestionFormProps {
   questionnaireId: string
   nextOrder: number
+  sections?: Section[]
 }
 
-export default function AdminNewQuestionForm({ questionnaireId, nextOrder }: AdminNewQuestionFormProps) {
+export default function AdminNewQuestionForm({ questionnaireId, nextOrder, sections = [] }: AdminNewQuestionFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -21,6 +29,7 @@ export default function AdminNewQuestionForm({ questionnaireId, nextOrder }: Adm
     textEn: '',
     textAr: '',
     isRequired: false,
+    sectionId: '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,6 +41,7 @@ export default function AdminNewQuestionForm({ questionnaireId, nextOrder }: Adm
       const result = await createQuestion({
         questionnaireId,
         ...formData,
+        sectionId: formData.sectionId || null,
       })
 
       if (result.error) {
@@ -110,6 +120,27 @@ export default function AdminNewQuestionForm({ questionnaireId, nextOrder }: Adm
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Section
+        </label>
+        <select
+          value={formData.sectionId || ''}
+          onChange={(e) => setFormData({ ...formData, sectionId: e.target.value || null })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">No Section (Unassigned)</option>
+          {sections.map((section) => (
+            <option key={section.id} value={section.id}>
+              Section {section.order}: {section.titleEn}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500 mt-1">
+          Select a section to group this question with others, or leave unassigned.
+        </p>
       </div>
 
       <div>

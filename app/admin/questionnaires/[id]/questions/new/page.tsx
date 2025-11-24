@@ -42,6 +42,7 @@ export default async function NewQuestionPage({ params }: NewQuestionPageProps) 
   }
 
   const nextOrder = result.questionnaire.questions.length + 1
+  const sections = (result.questionnaire as any).sections || []
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -56,7 +57,7 @@ export default async function NewQuestionPage({ params }: NewQuestionPageProps) 
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Add New Question</h1>
         <div className="bg-white rounded-lg shadow-md p-6">
-          <NewQuestionForm questionnaireId={params.id} nextOrder={nextOrder} />
+          <NewQuestionForm questionnaireId={params.id} nextOrder={nextOrder} sections={sections} />
         </div>
       </div>
     </div>

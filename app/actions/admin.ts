@@ -220,6 +220,7 @@ export async function createQuestion(data: {
   textEn: string
   textAr: string
   isRequired?: boolean
+  sectionId?: string | null
 }) {
   try {
     const question = await prisma.question.create({
@@ -249,6 +250,7 @@ export async function updateQuestion(
     textEn?: string
     textAr?: string
     isRequired?: boolean
+    sectionId?: string | null
   }
 ) {
   try {
