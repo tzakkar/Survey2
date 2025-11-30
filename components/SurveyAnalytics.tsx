@@ -321,38 +321,48 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
       const ws4 = XLSX.utils.aoa_to_sheet(questionAnalysis)
       XLSX.utils.book_append_sheet(workbook, ws4, 'Question Analysis')
       
-      // Sheet 5: Raw Data
-      const rawData: any[] = [
-        ['Response ID', 'Submitted At', 'Language', 'Question', 'Answer']
-      ]
+      // Sheet 5: Raw Data - One column per responder
+      // Sort questions by order to maintain consistency
+      const sortedQuestions = [...questions].sort((a, b) => a.order - b.order)
       
-      responses.forEach((response) => {
-        response.answers.forEach((answer) => {
-          const questionText = answer.question
-            ? (language === 'ar' ? answer.question.textAr : answer.question.textEn)
-            : `Question ID: ${answer.questionId}`
+      // Build header row: Question column + one column per response
+      const rawDataHeaders: any[] = ['Question']
+      responses.forEach((response, idx) => {
+        rawDataHeaders.push(`Response ${idx + 1} (${response.id.slice(0, 8)})`)
+      })
+      
+      const rawData: any[] = [rawDataHeaders]
+      
+      // For each question, create a row with question text and answers from each responder
+      sortedQuestions.forEach((question) => {
+        const questionText = language === 'ar' ? question.textAr : question.textEn
+        const row: any[] = [questionText]
+        
+        // Get answer for this question from each response
+        responses.forEach((response) => {
+          const answer = response.answers.find((a) => a.questionId === question.id)
           
-          let answerText = 'No answer'
-          if (answer.valueText) {
-            if (answer.valueOptionId && answer.option) {
-              answerText = `${answer.option.labelEn}: ${answer.valueText}`
-            } else {
-              answerText = answer.valueText
+          if (!answer) {
+            row.push('')
+          } else {
+            let answerText = 'No answer'
+            if (answer.valueText) {
+              if (answer.valueOptionId && answer.option) {
+                const optionLabel = language === 'ar' ? answer.option.labelAr : answer.option.labelEn
+                answerText = `${optionLabel}: ${answer.valueText}`
+              } else {
+                answerText = answer.valueText
+              }
+            } else if (answer.option) {
+              answerText = language === 'ar' ? answer.option.labelAr : answer.option.labelEn
+            } else if (answer.valueOptionId) {
+              answerText = `Option ID: ${answer.valueOptionId}`
             }
-          } else if (answer.option) {
-            answerText = answer.option.labelEn
-          } else if (answer.valueOptionId) {
-            answerText = `Option ID: ${answer.valueOptionId}`
+            row.push(answerText)
           }
-          
-          rawData.push([
-            response.id.slice(0, 8),
-            new Date(response.submittedAt).toLocaleString(),
-            response.language === 'AR' ? 'Arabic' : 'English',
-            questionText,
-            answerText
-          ])
         })
+        
+        rawData.push(row)
       })
       
       const ws5 = XLSX.utils.aoa_to_sheet(rawData)
