@@ -479,7 +479,7 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
                           <p className="text-gray-800 mb-3 leading-relaxed">
                             {lang === 'ar' 
                               ? 'يرجى الإشارة إلى مستوى موافقتك على العبارات التالية المتعلقة بإطار الكفاءات في منظمتك.'
-                              : 'Please indicate your level of agreement with the following statements about your organization''s competency framework.'}
+                              : "Please indicate your level of agreement with the following statements about your organization's competency framework."}
                           </p>
                           <div className="bg-white rounded-lg p-4 border border-indigo-300">
                             <p className="text-sm font-semibold text-gray-700 mb-2">
@@ -554,7 +554,7 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
                         <p className="text-gray-800 mb-3 leading-relaxed">
                           {lang === 'ar' 
                             ? 'يرجى الإشارة إلى مستوى موافقتك على العبارات التالية المتعلقة بإطار الكفاءات في منظمتك.'
-                            : 'Please indicate your level of agreement with the following statements about your organization''s competency framework.'}
+                            : "Please indicate your level of agreement with the following statements about your organization's competency framework."}
                         </p>
                         <div className="bg-white rounded-lg p-4 border border-indigo-300">
                           <p className="text-sm font-semibold text-gray-700 mb-2">
