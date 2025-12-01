@@ -404,7 +404,7 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
         )}
       </div>
     )
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-10">
