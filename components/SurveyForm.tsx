@@ -425,6 +425,11 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
                   <div className="h-full bg-white/20 animate-pulse"></div>
                 </div>
               </div>
+              <p className="mt-1 text-xs sm:text-sm text-gray-500">
+                {lang === 'ar'
+                  ? 'الوقت المتوقع لإكمال الاستبيان: ١٥–١٨ دقيقة'
+                  : 'Estimated completion time: 15–18 minutes'}
+              </p>
             </div>
             <div className="text-xs text-gray-500 font-medium whitespace-nowrap">
               {answeredQuestions} / {totalQuestions} {lang === 'ar' ? 'أسئلة' : 'questions'}
@@ -473,8 +478,8 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
                           </h3>
                           <p className="text-gray-800 mb-3 leading-relaxed">
                             {lang === 'ar' 
-                              ? 'يرجى الإشارة إلى مستوى موافقتك على العبارات التالية المتعلقة بفهمك لإطار الكفاءات.'
-                              : 'Please indicate your level of agreement with the following statements about your understanding of the competency framework.'}
+                              ? 'يرجى الإشارة إلى مستوى موافقتك على العبارات التالية المتعلقة بإطار الكفاءات في منظمتك.'
+                              : 'Please indicate your level of agreement with the following statements about your organization''s competency framework.'}
                           </p>
                           <div className="bg-white rounded-lg p-4 border border-indigo-300">
                             <p className="text-sm font-semibold text-gray-700 mb-2">
@@ -548,8 +553,8 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
                         </h3>
                         <p className="text-gray-800 mb-3 leading-relaxed">
                           {lang === 'ar' 
-                            ? 'يرجى الإشارة إلى مستوى موافقتك على العبارات التالية المتعلقة بفهمك لإطار الكفاءات.'
-                            : 'Please indicate your level of agreement with the following statements about your understanding of the competency framework.'}
+                            ? 'يرجى الإشارة إلى مستوى موافقتك على العبارات التالية المتعلقة بإطار الكفاءات في منظمتك.'
+                            : 'Please indicate your level of agreement with the following statements about your organization''s competency framework.'}
                         </p>
                         <div className="bg-white rounded-lg p-4 border border-indigo-300">
                           <p className="text-sm font-semibold text-gray-700 mb-2">
