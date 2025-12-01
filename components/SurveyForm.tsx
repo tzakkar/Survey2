@@ -260,7 +260,7 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
     demographicsSection: demographicsSection?.titleEn
   })
 
-  const renderQuestion = (question: typeof questionnaire.questions[0]) => {
+  function renderQuestion(question: typeof questionnaire.questions[0]) {
     // Debug: Log questions with missing options
     if ((question.type === QuestionType.SCALE_1_5 || question.type === QuestionType.MULTIPLE_CHOICE) && (!question.options || question.options.length === 0)) {
       console.warn(`⚠️ Question "${question.textEn}" (Order: ${question.order}, Type: ${question.type}) has no options in component`)
@@ -404,7 +404,7 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
         )}
       </div>
     )
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-10">
