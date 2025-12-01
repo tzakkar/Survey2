@@ -188,6 +188,15 @@ export default function SurveyForm({ questionnaire, language }: SurveyFormProps)
         return
       }
 
+      // Show a thank-you message before redirecting to the thank-you page
+      if (typeof window !== 'undefined') {
+        const message =
+          lang === 'ar'
+            ? 'شكرًا لمشاركتك! آراؤك ذات قيمة كبيرة لهذا البحث.'
+            : 'Thank you for your participation! Your insights are invaluable to this research.'
+        window.alert(message)
+      }
+
       router.push(`/survey/${questionnaire.slug}/thank-you?lang=${lang}`)
     } catch (error) {
       console.error('Error submitting form:', error)
