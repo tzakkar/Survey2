@@ -503,7 +503,8 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
       for (let i = 0; i < questionStats.length; i++) {
         const stat = questionStats[i]
         const questionText = language === 'ar' ? stat.question.textAr : stat.question.textEn
-        const sheetName = `Q${stat.question.order} Analysis`.substring(0, 31)
+        // Use index to ensure unique sheet names even if question orders are duplicated
+        const sheetName = `Q${stat.question.order}-${i + 1} Analysis`.substring(0, 31)
 
         const qSheet = workbook.addWorksheet(sheetName)
 
