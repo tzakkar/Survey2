@@ -398,21 +398,159 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
       // Helper function to capture chart as image
       const captureChartAsImage = async (selector: string): Promise<string | null> => {
         const element = document.querySelector(selector)
-        if (!element) return null
+        if (!element) {
+          console.warn(`Chart element not found: ${selector}`)
+          return null
+        }
 
         try {
           const canvas = await html2canvas(element as HTMLElement, {
             backgroundColor: '#ffffff',
-            scale: 2
+            scale: 2,
+            logging: false,
+            useCORS: true
           })
           return canvas.toDataURL('image/png').split(',')[1] // Get base64 without prefix
         } catch (err) {
-          console.error('Error capturing chart:', err)
+          console.error(`Error capturing chart ${selector}:`, err)
           return null
         }
       }
 
-      // Sheet 1: Overall Statistics
+      // Capture all charts first
+      console.log('Capturing charts...')
+      const timelineChartImage = await captureChartAsImage('#chart-timeline')
+      const languageChartImage = await captureChartAsImage('#chart-language')
+
+      // Capture question charts
+      const questionCharts: Record<string, { bar?: string; pie?: string; scale?: string; text?: string }> = {}
+      for (const stat of questionStats) {
+        questionCharts[stat.question.id] = {}
+
+        if (stat.type === 'multiple_choice') {
+          questionCharts[stat.question.id].bar = await captureChartAsImage(`#chart-question-${stat.question.id}-bar`) || undefined
+          questionCharts[stat.question.id].pie = await captureChartAsImage(`#chart-question-${stat.question.id}-pie`) || undefined
+        } else if (stat.type === 'scale') {
+          questionCharts[stat.question.id].scale = await captureChartAsImage(`#chart-question-${stat.question.id}-scale`) || undefined
+        } else if (stat.type === 'text') {
+          questionCharts[stat.question.id].text = await captureChartAsImage(`#chart-question-${stat.question.id}-text`) || undefined
+        }
+      }
+      console.log('Charts captured successfully')
+
+      // Sheet 1: Charts Dashboard - All charts in one place
+      const dashboardSheet = workbook.addWorksheet('Charts Dashboard')
+      let dashboardRow = 1
+
+      // Add dashboard title
+      dashboardSheet.mergeCells('A1:D1')
+      dashboardSheet.getCell('A1').value = 'Survey Analytics - Charts Dashboard'
+      dashboardSheet.getCell('A1').font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } }
+      dashboardSheet.getCell('A1').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF3B82F6' }
+      }
+      dashboardSheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' }
+      dashboardSheet.getRow(1).height = 30
+      dashboardRow += 2
+
+      // Add Timeline Chart to dashboard
+      if (timelineChartImage) {
+        dashboardSheet.getCell(`A${dashboardRow}`).value = 'Responses Over Time'
+        dashboardSheet.getCell(`A${dashboardRow}`).font = { bold: true, size: 12 }
+        dashboardRow++
+
+        const timelineImageId = workbook.addImage({
+          base64: timelineChartImage,
+          extension: 'png',
+        })
+        dashboardSheet.addImage(timelineImageId, {
+          tl: { col: 0, row: dashboardRow },
+          ext: { width: 600, height: 300 }
+        })
+        dashboardRow += 17 // ~300px / 18px per row
+      }
+
+      // Add Language Chart to dashboard
+      if (languageChartImage) {
+        dashboardSheet.getCell(`A${dashboardRow}`).value = 'Language Distribution'
+        dashboardSheet.getCell(`A${dashboardRow}`).font = { bold: true, size: 12 }
+        dashboardRow++
+
+        const langImageId = workbook.addImage({
+          base64: languageChartImage,
+          extension: 'png',
+        })
+        dashboardSheet.addImage(langImageId, {
+          tl: { col: 0, row: dashboardRow },
+          ext: { width: 600, height: 300 }
+        })
+        dashboardRow += 17
+      }
+
+      // Add Question Charts to dashboard
+      for (let i = 0; i < questionStats.length; i++) {
+        const stat = questionStats[i]
+        const questionText = language === 'ar' ? stat.question.textAr : stat.question.textEn
+        const charts = questionCharts[stat.question.id]
+
+        if (charts && (charts.bar || charts.pie || charts.scale || charts.text)) {
+          dashboardSheet.getCell(`A${dashboardRow}`).value = `Q${stat.question.order}: ${questionText}`
+          dashboardSheet.getCell(`A${dashboardRow}`).font = { bold: true, size: 12 }
+          dashboardRow++
+
+          if (charts.bar) {
+            const barImageId = workbook.addImage({
+              base64: charts.bar,
+              extension: 'png',
+            })
+            dashboardSheet.addImage(barImageId, {
+              tl: { col: 0, row: dashboardRow },
+              ext: { width: 600, height: 300 }
+            })
+            dashboardRow += 17
+          }
+
+          if (charts.pie) {
+            const pieImageId = workbook.addImage({
+              base64: charts.pie,
+              extension: 'png',
+            })
+            dashboardSheet.addImage(pieImageId, {
+              tl: { col: 0, row: dashboardRow },
+              ext: { width: 600, height: 300 }
+            })
+            dashboardRow += 17
+          }
+
+          if (charts.scale) {
+            const scaleImageId = workbook.addImage({
+              base64: charts.scale,
+              extension: 'png',
+            })
+            dashboardSheet.addImage(scaleImageId, {
+              tl: { col: 0, row: dashboardRow },
+              ext: { width: 600, height: 300 }
+            })
+            dashboardRow += 17
+          }
+
+          if (charts.text) {
+            const textImageId = workbook.addImage({
+              base64: charts.text,
+              extension: 'png',
+            })
+            dashboardSheet.addImage(textImageId, {
+              tl: { col: 0, row: dashboardRow },
+              ext: { width: 600, height: 250 }
+            })
+            dashboardRow += 15
+          }
+        }
+      }
+
+      // Sheet 2: Overall Statistics
       const statsSheet = workbook.addWorksheet('Overall Statistics')
       statsSheet.columns = [
         { header: 'Metric', key: 'metric', width: 30 },
@@ -438,7 +576,7 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
         fgColor: { argb: 'FF3B82F6' }
       }
 
-      // Sheet 2: Response Timeline with Chart
+      // Sheet 3: Response Timeline with Chart
       if (responseTimeline.length > 0) {
         const timelineSheet = workbook.addWorksheet('Response Timeline')
         timelineSheet.columns = [
@@ -458,8 +596,7 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
           fgColor: { argb: 'FF3B82F6' }
         }
 
-        // Capture timeline chart
-        const timelineChartImage = await captureChartAsImage('.recharts-wrapper')
+        // Add timeline chart to its sheet
         if (timelineChartImage) {
           const imageId = workbook.addImage({
             base64: timelineChartImage,
@@ -473,7 +610,7 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
         }
       }
 
-      // Sheet 3: Language Distribution
+      // Sheet 4: Language Distribution with Chart
       if (languageData.length > 0) {
         const langSheet = workbook.addWorksheet('Language Distribution')
         langSheet.columns = [
@@ -496,6 +633,19 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
           type: 'pattern',
           pattern: 'solid',
           fgColor: { argb: 'FF3B82F6' }
+        }
+
+        // Add language chart to its sheet
+        if (languageChartImage) {
+          const imageId = workbook.addImage({
+            base64: languageChartImage,
+            extension: 'png',
+          })
+
+          langSheet.addImage(imageId, {
+            tl: { col: 0, row: languageData.length + 2 },
+            ext: { width: 600, height: 300 }
+          })
         }
       }
 
@@ -545,6 +695,31 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
           qSheet.getColumn(2).width = 15
           qSheet.getColumn(3).width = 15
 
+          // Add bar chart for multiple choice
+          const charts = questionCharts[stat.question.id]
+          if (charts?.bar) {
+            const barImageId = workbook.addImage({
+              base64: charts.bar,
+              extension: 'png',
+            })
+            qSheet.addImage(barImageId, {
+              tl: { col: 0, row: qSheet.lastRow!.number + 1 },
+              ext: { width: 600, height: 300 }
+            })
+          }
+
+          // Add pie chart for multiple choice
+          if (charts?.pie) {
+            const pieImageId = workbook.addImage({
+              base64: charts.pie,
+              extension: 'png',
+            })
+            qSheet.addImage(pieImageId, {
+              tl: { col: 0, row: qSheet.lastRow!.number + 18 },
+              ext: { width: 600, height: 300 }
+            })
+          }
+
         } else if (stat.type === 'scale' && stat.scaleData) {
           // Add statistics
           qSheet.addRow(['Mean:', stat.mean])
@@ -573,6 +748,19 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
           qSheet.getColumn(2).width = 15
           qSheet.getColumn(3).width = 15
 
+          // Add scale chart
+          const charts = questionCharts[stat.question.id]
+          if (charts?.scale) {
+            const scaleImageId = workbook.addImage({
+              base64: charts.scale,
+              extension: 'png',
+            })
+            qSheet.addImage(scaleImageId, {
+              tl: { col: 0, row: qSheet.lastRow!.number + 1 },
+              ext: { width: 600, height: 300 }
+            })
+          }
+
         } else if (stat.type === 'text' && stat.topWords && stat.topWords.length > 0) {
           // Add top words table
           qSheet.addRow(['Top Words', 'Frequency'])
@@ -590,6 +778,19 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
           // Set column widths
           qSheet.getColumn(1).width = 25
           qSheet.getColumn(2).width = 15
+
+          // Add text word frequency chart
+          const charts = questionCharts[stat.question.id]
+          if (charts?.text) {
+            const textImageId = workbook.addImage({
+              base64: charts.text,
+              extension: 'png',
+            })
+            qSheet.addImage(textImageId, {
+              tl: { col: 0, row: qSheet.lastRow!.number + 1 },
+              ext: { width: 600, height: 250 }
+            })
+          }
 
           // Add sample answers
           if (stat.textAnswers && stat.textAnswers.length > 0) {
@@ -770,16 +971,18 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             {language === 'ar' ? 'الردود حسب التاريخ' : 'Responses Over Time'}
           </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={responseTimeline}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} name={language === 'ar' ? 'عدد الردود' : 'Responses'} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div id="chart-timeline">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={responseTimeline}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} name={language === 'ar' ? 'عدد الردود' : 'Responses'} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
@@ -789,25 +992,27 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             {language === 'ar' ? 'توزيع اللغات' : 'Language Distribution'}
           </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={languageData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {languageData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div id="chart-language">
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={languageData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {languageData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
@@ -833,34 +1038,38 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
                   </p>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={stat.optionData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="#3b82f6" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={stat.optionData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {stat.optionData.map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div id={`chart-question-${stat.question.id}-bar`}>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={stat.optionData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#3b82f6" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div id={`chart-question-${stat.question.id}-pie`}>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={stat.optionData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                          outerRadius={100}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {stat.optionData.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             )
@@ -884,15 +1093,17 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
                     </p>
                   </div>
                 </div>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={stat.scaleData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div id={`chart-question-${stat.question.id}-scale`}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={stat.scaleData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="#10b981" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             )
           } else if (stat.type === 'text') {
@@ -912,15 +1123,17 @@ export default function SurveyAnalytics({ responses, questions, language = 'en' 
                     <h4 className="text-md font-medium text-gray-700 mb-2">
                       {language === 'ar' ? 'أكثر الكلمات تكراراً' : 'Most Frequent Words'}
                     </h4>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={stat.topWords} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis dataKey="name" type="category" width={100} />
-                        <Tooltip />
-                        <Bar dataKey="value" fill="#f59e0b" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <div id={`chart-question-${stat.question.id}-text`}>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={stat.topWords} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis dataKey="name" type="category" width={100} />
+                          <Tooltip />
+                          <Bar dataKey="value" fill="#f59e0b" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 )}
                 {stat.textAnswers && stat.textAnswers.length > 0 && (
